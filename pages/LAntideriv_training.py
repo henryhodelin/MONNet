@@ -9,4 +9,4 @@ def linear_antiderivative_training(st, **state):
     
     """  )
 
-    st.write('Como el proceso lleva mucho tiempo se disponibiliza la jupyter notebook')
+    
