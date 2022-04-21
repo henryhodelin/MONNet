@@ -139,58 +139,43 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         vis_procesos_gaussianos = st.button(label="Visualizar PROCESOS GAUSSIANOS",  key="Cal_PG")
 
     
-    #@st.experimental_memo(max_entries=2)
     def gen_gaussian_processes(mean,COV,number_of_functions):
-        # Fetch data from URL here, and then clean it up.
         return np.random.multivariate_normal(mean,cov=COV,size=number_of_functions)
         
     if st.session_state.cal_procesos_gaussianos:
         mean = np.ones(nb_of_samples)*media
         st.session_state.ys = gen_gaussian_processes(mean,COV,number_of_functions)
         #st.write(type(st.session_state.ys.tolist()))
-        fig2, ax2  = plt.subplots(figsize=(6, 4))
+        st.subheader('Gaussian Processes Generated')
+        fig = go.Figure()
         for i in range(number_of_functions):
-            ax2.plot(X, st.session_state.ys[i], linestyle='-', marker='o', markersize=3)
-        ax2.set_xlabel('$x$', fontsize=13)
-        ax2.set_ylabel('$u(x)$', fontsize=13)
-        ax2.set_title('Procesos gaussianos generados')
-        ax2.grid(True)
-        st.pyplot(fig2)
-
+            fig.add_trace(go.Scatter(x=np.squeeze(X), y=st.session_state.ys[i],
+                        mode='lines+markers',
+                        name='u_'+str(i)))
+        fig.update_layout(xaxis_title='x',
+                   yaxis_title='u(x)')
+        st.plotly_chart(fig, use_container_width=True)
+        
 
     if  ocult_procesos_gaussianos:
         st.session_state.cal_procesos_gaussianos = False
 
     if  vis_procesos_gaussianos:
         try:
-            fig2, ax2  = plt.subplots(figsize=(6, 4))
+            st.subheader('Gaussian Processes Generated')
+            fig = go.Figure()
             for i in range(number_of_functions):
-                ax2.plot(X, st.session_state.ys[i], linestyle='-', marker='o', markersize=3)
-            ax2.set_xlabel('$x$', fontsize=13)
-            ax2.set_ylabel('$u(x)$', fontsize=13)
-            ax2.set_title('Procesos gaussianos generados')
-            ax2.grid(True)
-            st.pyplot(fig2)
+                fig.add_trace(go.Scatter(x=np.squeeze(X), y=st.session_state.ys[i],
+                        mode='lines+markers',
+                        name='u_'+str(i)))
+            fig.update_layout(xaxis_title='x',
+                   yaxis_title='u_i(x)')
+            st.plotly_chart(fig, use_container_width=True)
         except:
             st.warning('You need to generate the gaussian processes')
         
 
-    ##############################################################################################
-    #  Nueva función de generación de procesos gaussianos    
-    ##############################################################################################
-    #st.write(np.shape(np.squeeze(X))) 
-    #st.write(np.shape(st.session_state.ys[0]))
-
-    #fig = go.Figure()
-    #fig.add_trace(go.Scatter(x=np.squeeze(X), y=st.session_state.ys[0],
-    #                mode='lines',
-    #                name='lines'))
-    #st.plotly_chart(fig, use_container_width=True)
     
-    
-    ##################################################################
-
-
 
     if st.checkbox("Vizualize (Download) code"):
         st.write(""" CODIGO DE GENERACIÓN DE FUNCIÓN DE u(x) COMO PROCESOS GAUSSIANOS""")
