@@ -1,0 +1,2 @@
+model_checkpoint_path: "pesos_salvado"
+all_model_checkpoint_paths: "pesos_salvado"
