@@ -284,23 +284,28 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
     #          - SOLUCIÓN DE LA ECUACIÓN DIFERENCIAL
     #            UTILIZANDO List Comprehension
     ##############################################################
+   
+    st.subheader("ODEs SOLUTIONS CALCULATIONS")
 
-    #x = np.squeeze(X)
-    #U = st.session_state.ys[i]
-    #u = interp1d(X, U, kind='cubic')
-    #model= lambda x, y :  u(x)
-    #full_output[counter] = solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X,rtol = 1e-5).y
+    U = st.session_state.ys[i]
+    interval = [0,1]
+    s0_ode_lineal = st.slider('Selección de s(0)', 0.0, 1.0)
+    X_eval = np.squeeze(X)
+    
+    @st.experimental_memo
+    def solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval):
+        X = np.squeeze(X)
+        u = interp1d(X, U, kind='cubic')
+        model= lambda x, y :  u(x)
+        return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
+
+    n_test =  solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval)
 
     
-    #def solve_linear_ode(x,U,interval,s0_ode_lineal):
-    #    u = interp1d(x, U, kind='cubic')
-    #    model= lambda x, y :  u(x)
+    l_test = [solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval) for U in st.session_state.ys]
 
-    #    return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X,rtol = 1e-5).y
-
-
-    #[x for x in range(10)] 
-    #st.write()                        
+    #st.write( type(l_test))    
+    #st.write(len(l_test))                    
 
 
 
