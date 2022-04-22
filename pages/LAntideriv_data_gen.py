@@ -9,6 +9,10 @@ from matplotlib import cm
 import plotly.graph_objects as go
 
 import scipy
+from scipy import spatial
+from scipy.interpolate import interp1d
+from scipy.integrate import odeint, solve_ivp
+
 
 
 
@@ -247,8 +251,56 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         st.code(code_a, language='python')
 
     ###############################################################
+    #           SELECCIÓN DE LAS FUNCIONES DE ENTRADA 
+    ###############################################################
+
+    u_options = []
+    u_num_options = []
+    u_num = np.linspace(0,number_of_functions,number_of_functions+1)
+    for j in range(number_of_functions):
+        u_options.append("u_"+str(int(j) ) +"(x)")
+            
+    st.subheader('INPUTS FUNCTIONS u(x) TO SELECT ')        
+    u_seleccionada  = st.multiselect(label=" ", options=u_options)
+            
+            
+    try:
+        u_index = []
+        for k in u_seleccionada:
+            u_index.append(u_options.index(k) )
+        st.subheader('Input Functions Selected')
+        fig = go.Figure()
+        for i in u_index:
+            fig.add_trace(go.Scatter(x=np.squeeze(X), y=st.session_state.ys[i],
+                    mode='lines+markers',
+                    name=u_options[i]))
+        fig.update_layout(xaxis_title='x',
+                yaxis_title='u_i(x)')
+        st.plotly_chart(fig, use_container_width=True)
+    except:
+        st.warning('SELECT AL LEAST ONE FUNCTION')
+    
+    ###############################################################
     #          - SOLUCIÓN DE LA ECUACIÓN DIFERENCIAL
+    #            UTILIZANDO List Comprehension
     ##############################################################
+
+    #x = np.squeeze(X)
+    #U = st.session_state.ys[i]
+    #u = interp1d(X, U, kind='cubic')
+    #model= lambda x, y :  u(x)
+    #full_output[counter] = solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X,rtol = 1e-5).y
+
+    
+    #def solve_linear_ode(x,U,interval,s0_ode_lineal):
+    #    u = interp1d(x, U, kind='cubic')
+    #    model= lambda x, y :  u(x)
+
+    #    return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X,rtol = 1e-5).y
+
+
+    #[x for x in range(10)] 
+    #st.write()                        
 
 
 
