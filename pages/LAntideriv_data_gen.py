@@ -287,7 +287,7 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
    
     st.subheader("ODEs SOLUTIONS CALCULATIONS")
     
-    s0_ode_lineal = st.slider('Selección de s(0)', 0.0, 1.0)
+    
 
     @st.experimental_memo
     def solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval):
@@ -295,12 +295,75 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         u = interp1d(X, U, kind='cubic')
         model= lambda x, y :  u(x)
         return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
+    
+    col1, col2 = st.columns([1,1])
+    with col1:
+        s0_ode_lineal = st.slider('ODE initial condition s(0)', 0.0, 1.0)
+    
+
+    col1, col2 = st.columns([1,2])
+    with col1:
+        if st.checkbox("CALCULATE"):
+            interval = [0,1]
+            X_eval = np.squeeze(X)
+            l_test = [solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval) for U in st.session_state.ys]
+    with col2:
+        if st.checkbox("EXAMPLE CODE"):
+            code_b = """
+import numpy as np
+
+import plotly.graph_objects as go
+
+import scipy
+from scipy.interpolate import interp1d
+from scipy.integrate import  solve_ivp
+
+#############################################################
+###          IMPLEMENTATION OF THE NUMERICAL   
+###       SOLUTION OF THE DIFFERENTIAL EQUATION
+###       dy/dx = u(x) = cos(2*pi*x) 
+##############################################################
+
+X_min = 0
+X_max = 1
+nb_of_samples = 100
 
 
-    if st.checkbox("CALCULATE"):
-        interval = [0,1]
-        X_eval = np.squeeze(X)
-        l_test = [solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval) for U in st.session_state.ys]
+X = np.expand_dims(np.linspace(X_min, X_max, nb_of_samples), 1)
+U = np.cos(2*np.pi*X)
+
+interval = [0,1]               # CALCULATION DOMAIN
+s0_ode_lineal = 0              # INITIAL CONDITION
+X_eval = np.squeeze(X)         # POINTS OF EVALUATION 
+
+
+
+def solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval):
+    X = np.squeeze(X)
+    u = interp1d(X, U, kind='cubic')
+    model= lambda x, y :  u(x)
+    return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
+
+solution = solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval)
+
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=np.squeeze(X), y=np.squeeze(U),
+        mode='lines',
+        name='u(x)'))
+fig.add_trace(go.Scatter(x=np.squeeze(X), y=np.squeeze(solution),
+        mode='lines+markers',
+        name='y(x)'))        
+fig.update_layout(xaxis_title='x',
+                yaxis_title='Functions')
+fig.show()
+        """
+            st.code(code_b, language='python')
+
+
+
+
+    
         #st.write(len(l_test)) 
     
     st.subheader("VISUALIZATION OF THE SOLUTION FOR THE INPUT FUNCTIONS SELECTED")
