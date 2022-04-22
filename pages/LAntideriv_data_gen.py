@@ -268,7 +268,7 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         u_index = []
         for k in u_seleccionada:
             u_index.append(u_options.index(k) )
-        st.subheader('Input Functions Selected')
+        st.subheader('INPUT FUNCTIONS SELECTED')
         fig = go.Figure()
         for i in u_index:
             fig.add_trace(go.Scatter(x=np.squeeze(X), y=st.session_state.ys[i],
@@ -286,12 +286,9 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
     ##############################################################
    
     st.subheader("ODEs SOLUTIONS CALCULATIONS")
-
-    U = st.session_state.ys[i]
-    interval = [0,1]
-    s0_ode_lineal = st.slider('Selección de s(0)', 0.0, 1.0)
-    X_eval = np.squeeze(X)
     
+    s0_ode_lineal = st.slider('Selección de s(0)', 0.0, 1.0)
+
     @st.experimental_memo
     def solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval):
         X = np.squeeze(X)
@@ -299,10 +296,29 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         model= lambda x, y :  u(x)
         return solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
 
-    n_test =  solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval)
 
+    if st.checkbox("CALCULATE"):
+        interval = [0,1]
+        X_eval = np.squeeze(X)
+        l_test = [solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval) for U in st.session_state.ys]
+        #st.write(len(l_test)) 
     
-    l_test = [solve_linear_ode(X,U,interval,s0_ode_lineal,X_eval) for U in st.session_state.ys]
+    st.subheader("VISUALIZATION OF THE SOLUTION FOR THE INPUT FUNCTIONS SELECTED")
+    
+    try:
+        fig = go.Figure()
+        for i in u_index:
+            fig.add_trace(go.Scatter(x=np.squeeze(X), y=l_test[i],
+                    mode='lines+markers',
+                    name=u_options[i]))
+        fig.update_layout(xaxis_title='x',
+                yaxis_title='u_i(x)')
+        st.plotly_chart(fig, use_container_width=True)
+    except:
+        st.warning('SELECT AL LEAST ONE FUNCTION')
+    
+        
+    
 
     #st.write( type(l_test))    
     #st.write(len(l_test))                    
