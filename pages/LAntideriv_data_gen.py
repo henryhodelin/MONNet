@@ -1,6 +1,10 @@
+from logging import exception
 import os
+from turtle import position
 import numpy as np
 from PIL import Image
+
+import random
 
 
 import matplotlib.pyplot as plt
@@ -380,25 +384,135 @@ fig.show()
     except:
         st.warning('SELECT AL LEAST ONE FUNCTION')
     
-        
+
+
+    ##############################################################
+    #           - CREACIÓN DE UN ARREGLO DE DATOS
+    ##############################################################
+
+    
+    x = np.squeeze(X)
+    u = st.session_state.ys
+
+    @st.experimental_memo
+    def data_training_array_gen(X,U,interval,s0_ode_lineal,X_eval):
+        u = interp1d(X, U, kind='cubic')
+        model= lambda x, y :  u(x)
+        return U, np.expand_dims(s0_ode_lineal,0) , X_eval, solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
     
 
-    #st.write( type(l_test))    
-    #st.write(len(l_test))                    
+    st.subheader("Generation of arrays of training data") 
+
+    col1, col2, col3 = st.columns(3)
+    if "counter" not in st.session_state:
+        st.session_state["counter"] = 0
+
+    @st.experimental_memo
+    def init_gen(number_of_functions,counter):
+        positions = [random.random() for j in range(number_of_functions)]
+        initial_conditions = [random.random() for j in range(number_of_functions)]
+        return positions, initial_conditions
+
+    if "G_data" not in st.session_state:
+        st.session_state["G_data"] = False 
+
+    if "training_data" not in st.session_state:
+        st.session_state["training_data"] = []
+
+
+    with col1:
+        st.session_state.G_data = st.button(label="GENERATE TRAINING DATA",  key="Cal_GTD")
+
+    with col2:
+        hide_data = st.button(label="HIDE DATA")
+        
+    with col3:
+        view_data = st.button(label="VIEW DATA")
+        
+    if st.session_state.G_data:
+        #positions = [random.random() for j in range(number_of_functions)]
+        # #initial_conditions = [random.random() for j in range(number_of_functions)]
+        positions, initial_conditions = init_gen(number_of_functions,st.session_state.counter)
+        try:
+            st.session_state.training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
+        except:
+             st.info("Need to generate the input functions")
+
+        st.write(st.session_state.training_data)
+        st.session_state.counter += 1
+
+    if hide_data:
+        st.session_state.G_data = False
+
+    if view_data:
+        try:
+            st.write(st.session_state.training_data)
+        except:
+            st.info("Need to generate arrays of training data")
+
+    if st.checkbox("EXAMPLE CODE",key = 'c'):
+        code_c = """
+        
+        """
+
+        st.code(code_c, language='python')
 
 
 
 
-    ##############################################################
-    #           - CREACIÓN DE UN ARREGLO DE DATOSS
-    ##############################################################
+    #st.write("lista de parametros")
+    
+    
+    
+    #st.write('posiciones de evaluacion =',positions)
+    #st.write('elemento de posiciones de evaluacion type =',type(np.expand_dims(positions[0],0) ))
 
 
+    #st.write('condiciones iniciales =',initial_conditions)
+
+    #st.write("#################################################")
+
+    
+    
+
+    #st.write("Evaluacion exitosa de un punto")
+
+    #st.write("lista de parametros")
+
+    #st.write("x type =",type(x))
+    #st.write( "x shape =",np.shape(x))
+
+    #st.write("u type =",type(st.session_state.ys[0]))
+    #st.write( "u shape =",np.shape(st.session_state.ys[0]))
+    
+    #st.write("s0 type = ", type(s0_ode_lineal)) 
+    #st.write("s0 shape =", np.shape(s0_ode_lineal))
+
+    #st.write("x_eval type = ",type(x))
+    #st.write("x_eval shape =", np.shape(x))
+
+    
+
+    #single_training_data = data_training_array_gen(x,st.session_state.ys[0],interval,s0_ode_lineal,x)
+    
+    #st.write("Salida:")
+
+    #st.write(type(single_training_data))
+    #st.write(type(single_training_data[0]))
+    
+    #st.write(single_training_data[0][1])
+    #st.write(single_training_data[0][2])
+
+    #st.write("#################################################")
+
+  
 
 
-    ##############################################################
-    #        - CREACION DE MÚLTIPLES ARREGLOS DE DATOS
-    ##############################################################
+    #training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
+
+    #st.write(training_data)
+
+
 
     
 
