@@ -1,10 +1,9 @@
-from logging import exception
 import os
-from turtle import position
 import numpy as np
 from PIL import Image
 
 import random
+from torch.utils import data
 
 
 import matplotlib.pyplot as plt
@@ -398,10 +397,59 @@ fig.show()
     def data_training_array_gen(X,U,interval,s0_ode_lineal,X_eval):
         u = interp1d(X, U, kind='cubic')
         model= lambda x, y :  u(x)
-        return U, np.expand_dims(s0_ode_lineal,0) , X_eval, solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0]
+        return U, np.expand_dims(s0_ode_lineal,0) , X_eval, solve_ivp(model, interval, [s0_ode_lineal], method='RK45',t_eval=X_eval,rtol = 1e-5).y[0], u(X_eval)
     
 
     st.subheader("Generation of arrays of training data") 
+
+    if st.checkbox("View data format"):
+        st.latex(r"""
+        \begin{bmatrix}
+        u, & s_0, & y, & G[u,y], & u(y)
+        \end{bmatrix}=
+        """  )
+        st.latex(r"""
+        = \begin{bmatrix}
+        \begin{pmatrix}
+ & \vdots & & \\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\
+ & \vdots & &\\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\    
+ & \vdots & & 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+s_0.^{(i)}_1 \\
+s_0.^{(i)}_2 \\    
+\vdots \\
+s_0.^{(i)}_P \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+y^{(i)}_1 \\
+y^{(i)}_2 \\    
+\vdots \\
+y^{(i)}_P \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+G[u^{(i)},y^{(i)}_1] \\
+G[u^{(i)},y^{(i)}_2] \\    
+\vdots \\
+G[u^{(i)},y^{(i)}_P] \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+u^{(i)}(y^{(i)}_1)  \\
+u^{(i)}(y^{(i)}_2) \\    
+\vdots \\
+u^{(i)}(y^{(i)}_P) \\
+\vdots                 
+\end{pmatrix}
+        \end{bmatrix}
+        
+         """)
+
 
     col1, col2, col3 = st.columns(3)
     if "counter" not in st.session_state:
@@ -460,9 +508,41 @@ fig.show()
 
 
 
-    #st.write("lista de parametros")
+    st.subheader("Generating batches of training data")
     
     
+
+# Data generator
+    #class DataGenerator(data.Dataset):
+    #    def __init__(self, u, y, s, 
+    #             batch_size=64, rng_key=random.PRNGKey(1234)):
+    #             'Initialization'
+    #             self.u = u # input sample
+    #             self.y = y # location
+    #             self.s = s # labeled data evulated at y (solution measurements, BC/IC conditions, etc.)
+    #             
+    #             self.N = u.shape[0]
+    #             self.batch_size = batch_size
+    #             self.key = rng_key
+    #             
+    #    def __getitem__(self, index):
+    #        'Generate one batch of data'
+    #        self.key, subkey = random.split(self.key)
+    #        inputs, outputs = self.__data_generation(subkey)
+    #        return inputs, outputs
+    #        
+    #    def __data_generation(self, key):
+    #        'Generates data containing batch_size samples'
+    #        idx = random.choice(key, self.N, (self.batch_size,), replace=False)
+    #        s = self.s[idx,:]
+    #        y = self.y[idx,:]
+    #        u = self.u[idx,:]
+    #        # Construct batch
+    #        inputs = (u, y)
+    #        outputs = s
+    #        return inputs, outputs
+
+
     
     #st.write('posiciones de evaluacion =',positions)
     #st.write('elemento de posiciones de evaluacion type =',type(np.expand_dims(positions[0],0) ))
