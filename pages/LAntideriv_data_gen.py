@@ -127,7 +127,7 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
         
     col1, col2 = st.columns(2)
     with col1:
-        number_of_functions = st.number_input(label=" Número de  procesos \n a generar ",min_value=1, max_value=10,value=5)
+        number_of_functions = st.number_input(label=" Número de  procesos \n a generar ",min_value=1, max_value=20,value=10)
     with col2:
         media = st.number_input(label=" Media  ",min_value=-3.0, max_value=3.0,value=0.0)
             
@@ -451,7 +451,7 @@ u^{(i)}(y^{(i)}_P) \\
          """)
 
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     if "counter" not in st.session_state:
         st.session_state["counter"] = 0
 
@@ -476,6 +476,8 @@ u^{(i)}(y^{(i)}_P) \\
         
     with col3:
         view_data = st.button(label="VIEW DATA")
+    with col4:
+        regroup_data = st.button(label="VIEW FORMAT")
         
     if st.session_state.G_data:
         #positions = [random.random() for j in range(number_of_functions)]
@@ -483,6 +485,10 @@ u^{(i)}(y^{(i)}_P) \\
         positions, initial_conditions = init_gen(number_of_functions,st.session_state.counter)
         try:
             st.session_state.training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
+            #u_train, s_train, y_train, s_train, u_y_train = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
+            #u_train = [x for x in u]
+            #s0_train = [x for x in initial_conditions]
+            #y_train = [x for x in positions]
         except:
              st.info("Need to generate the input functions")
 
@@ -512,80 +518,87 @@ u^{(i)}(y^{(i)}_P) \\
     
     
 
-# Data generator
-    #class DataGenerator(data.Dataset):
-    #    def __init__(self, u, y, s, 
-    #             batch_size=64, rng_key=random.PRNGKey(1234)):
+
+    class DataGenerator(data.Dataset):
+        def __init__(self, u, s_0, y, s, #u_y, 
+                 batch_size=64, rng_key=1234):
     #             'Initialization'
-    #             self.u = u # input sample
-    #             self.y = y # location
-    #             self.s = s # labeled data evulated at y (solution measurements, BC/IC conditions, etc.)
+                 self.u = u # input sample
+                 self.s_0 = s_0 # initial condition
+                 self.y = y # location
+                 self.s = s # labeled data evulated at y (solution measurements, BC/IC conditions, etc.)
+    #             self.u_y = u_y # input sample at the location y 
+                 
+                 #self.N = u.shape[0]
+                 self.N = len(u)
+                 self.batch_size = batch_size
+                 self.key = rng_key
     #             
-    #             self.N = u.shape[0]
-    #             self.batch_size = batch_size
-    #             self.key = rng_key
-    #             
-    #    def __getitem__(self, index):
+        def __getitem__(self, index):
     #        'Generate one batch of data'
-    #        self.key, subkey = random.split(self.key)
-    #        inputs, outputs = self.__data_generation(subkey)
-    #        return inputs, outputs
+            inputs, outputs = self.__data_generation(self.key)
+            return inputs, outputs
     #        
-    #    def __data_generation(self, key):
+        def __data_generation(self, key):
     #        'Generates data containing batch_size samples'
-    #        idx = random.choice(key, self.N, (self.batch_size,), replace=False)
-    #        s = self.s[idx,:]
-    #        y = self.y[idx,:]
-    #        u = self.u[idx,:]
+            idx = random.sample(range(0, self.N), self.batch_size)
+            s = self.s[idx,:]
+            y = self.y[idx,:]
+            u = self.u[idx,:]
+            s_0 = self.s_0[idx,:] 
     #        # Construct batch
-    #        inputs = (u, y)
-    #        outputs = s
-    #        return inputs, outputs
-
-
-    
-    #st.write('posiciones de evaluacion =',positions)
-    #st.write('elemento de posiciones de evaluacion type =',type(np.expand_dims(positions[0],0) ))
-
-
-    #st.write('condiciones iniciales =',initial_conditions)
-
-    #st.write("#################################################")
-
-    
-    
-
-    #st.write("Evaluacion exitosa de un punto")
-
-    #st.write("lista de parametros")
-
-    #st.write("x type =",type(x))
-    #st.write( "x shape =",np.shape(x))
-
-    #st.write("u type =",type(st.session_state.ys[0]))
-    #st.write( "u shape =",np.shape(st.session_state.ys[0]))
-    
-    #st.write("s0 type = ", type(s0_ode_lineal)) 
-    #st.write("s0 shape =", np.shape(s0_ode_lineal))
-
-    #st.write("x_eval type = ",type(x))
-    #st.write("x_eval shape =", np.shape(x))
+            inputs = (u, y)
+            outputs = (s, s_0)
+            return inputs, outputs
 
     
 
-    #single_training_data = data_training_array_gen(x,st.session_state.ys[0],interval,s0_ode_lineal,x)
+
+    batch_size = st.slider('BATCH SIZE', 1, 10, 2)
     
-    #st.write("Salida:")
 
-    #st.write(type(single_training_data))
-    #st.write(type(single_training_data[0]))
+     
+    st.write("#################################################")
+
+
+    #def interpolation(U,X,y):
+    #    u = interp1d(X, U, kind='cubic')
+    #    return u(y)
+        
+
+
+    #u_train = [x for x in u]
+    #s0_train = [x for x in initial_conditions]
+    #y_train = [x for x in positions]
+    #s_train = [data_training_array_gen(x,u_train,interval,s0_train,np.expand_dims(y_train,0) ) for (u_train,s0_train,y_train) in zip(u_train,s0_train,y_train)]
+    #u_y_train= [ interpolation(u_train,x,y_train) for (u_train,y_train) in zip(u_train,y_train)]
+
+    #st.write('u_train type =', type(u_train))
+    #st.write('u_train lenght =', len(u_train))
+
+    #st.write('s0_train type =', type(s0_train))
+    #st.write('s0_train lenght =', len(s0_train))
+
+    #st.write('y type =', type(y_train))
+    #st.write('y lenght =', len(y_train))
+
+    #st.write('s_train type =', type(s_train))
+    #st.write('s_train lenght =', len(s_train))
+
+    #st.write('u_y_train type =', type(u_y_train))
+    #st.write('u_y_train lenght =', len(u_y_train))
+
+
+    #dataset = DataGenerator(u_train, s_train, y_train, s_train,  batch_size)
+    #st.write('dataset =',dataset)
+
+    #datos = iter(dataset)
     
-    #st.write(single_training_data[0][1])
-    #st.write(single_training_data[0][2])
 
-    #st.write("#################################################")
+    #if st.button('Verificar Iteracion'):
+    #    batch = next(datos)
+    #    st.write(batch)
 
-  
 
 
     #training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
