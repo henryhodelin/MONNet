@@ -451,7 +451,7 @@ u^{(i)}(y^{(i)}_P) \\
          """)
 
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     if "counter" not in st.session_state:
         st.session_state["counter"] = 0
 
@@ -476,8 +476,7 @@ u^{(i)}(y^{(i)}_P) \\
         
     with col3:
         view_data = st.button(label="VIEW DATA")
-    with col4:
-        regroup_data = st.button(label="VIEW FORMAT")
+    
         
     if st.session_state.G_data:
         #positions = [random.random() for j in range(number_of_functions)]
@@ -486,13 +485,27 @@ u^{(i)}(y^{(i)}_P) \\
         try:
             st.session_state.training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
             #u_train, s_train, y_train, s_train, u_y_train = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
-            #u_train = [x for x in u]
-            #s0_train = [x for x in initial_conditions]
-            #y_train = [x for x in positions]
+            u_list = [x for x in u]
+            u_train = np.array(u_list)
+            s0_list = [x for x in initial_conditions]
+            s0_train = np.array(s0_list)
+            y_list = [x for x in positions]
+            y_train = np.array(y_list)
+
+            
+            
         except:
              st.info("Need to generate the input functions")
 
-        st.write(st.session_state.training_data)
+        st.write('Training data =',st.session_state.training_data)
+        st.write('u_train = ',u_train)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write('s0_train = ',s0_train)
+        with col2:
+            st.write('y_train = ',y_train)
+
+
         st.session_state.counter += 1
 
     if hide_data:
@@ -500,7 +513,15 @@ u^{(i)}(y^{(i)}_P) \\
 
     if view_data:
         try:
-            st.write(st.session_state.training_data)
+            #st.write(st.session_state.training_data)
+            st.write('Training data =',st.session_state.training_data)
+            st.write('u_train = ',u_train)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.write('s0_train = ',s0_train)
+            with col2:
+                st.write('y_train = ',y_train)
+
         except:
             st.info("Need to generate arrays of training data")
 
