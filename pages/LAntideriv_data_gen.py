@@ -19,7 +19,6 @@ from scipy.integrate import odeint, solve_ivp
 
 
 
-
 def linear_antiderivative_training_data_generator(st, **state):
 
     if "cal_procesos_gaussianos" not in st.session_state:
