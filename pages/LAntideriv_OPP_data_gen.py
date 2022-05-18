@@ -28,6 +28,11 @@ def solve_linear_ode(X,U,interval,s0,pts_to_eval):
     model= lambda x, y :  u(x)
     return solve_ivp(model, interval, [s0], method='RK45',t_eval=pts_to_eval,rtol = 1e-5).y[0]
     
+@st.experimental_memo
+def solve_linear_ode_list(X,interval,s0,pts_to_eval,gaussian_processes_list):
+    solutions = [solve_linear_ode(X,U,interval,s0,pts_to_eval) for U in gaussian_processes_list]
+    return solutions
+
 
         
 class GP_gen:
@@ -82,16 +87,16 @@ class Data_gen(GP_gen):
         self.interval = interval
         self.s0 = s0
         self.pts_to_eval = pts_to_eval
-        self.s = self.solve_linear_ode(self.X,self.gp,self.interval,s0,pts_to_eval)
+        self.s = solve_linear_ode(self.X,self.gp,self.interval,s0,pts_to_eval)
 
         #Data_gen.all_data.append(self)
         self.all_data.append(self)
 
-    def solve_linear_ode(X,U,interval,s0,pts_to_eval):
-        X = np.squeeze(X)
-        u = interp1d(X, U, kind='cubic')
-        model= lambda x, y :  u(x)
-        return solve_ivp(model, interval, [s0], method='RK45',t_eval=pts_to_eval,rtol = 1e-5).y[0]
+    # def solve_linear_ode(X,U,interval,s0,pts_to_eval):
+    #     X = np.squeeze(X)
+    #     u = interp1d(X, U, kind='cubic')
+    #     model= lambda x, y :  u(x)
+    #     return solve_ivp(model, interval, [s0], method='RK45',t_eval=pts_to_eval,rtol = 1e-5).y[0]
     
 
 
@@ -391,16 +396,33 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
     if st.checkbox("CALCULATE"):
         interval = [0,1]
         X_eval = np.linspace(0,1,100)#np.squeeze(gaussian_process_params.X)
-        l_test = [solve_linear_ode(gaussian_process_params.X,U,interval,s0,X_eval) for U in st.session_state.ys]
-    #        
-        training_data = Data_gen(nb_of_samples, X_min,X_max,sigma, media,interval,s0,X_eval)
-
+        l_test = solve_linear_ode_list(gaussian_process_params.X,interval,s0,X_eval,st.session_state.ys)
+        
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=X_eval , y=training_data.s ,
-                        mode='lines+markers',
-                        name='s_solution'))
+        for i in u_index:
+            fig.add_trace(go.Scatter(x=np.squeeze(gaussian_process_params.X), y=l_test[i],
+                    mode='lines+markers',
+                    name=u_options[i]))
         fig.update_layout(xaxis_title='x',
-                        yaxis_title='s(x)')
+                yaxis_title='s_i(x)')
         st.plotly_chart(fig, use_container_width=True)
+
+    st.subheader("Training Data Generation")
+    with st.expander("View training data format"):
+        st.write("En construccion")
+
+
+    if st.checkbox("Creating training data"):
+        interval = [0,1]
+        X_eval = np.linspace(0,1,100)
+
+        training_data = Data_gen(nb_of_samples, X_min,X_max,sigma, media,interval,s0,X_eval)
+        st.write([training_data.all_gp_params[1].pts_to_eval,training_data.all_gp_params[1].s])
+        
+         
+        
+
+
+
 
     
