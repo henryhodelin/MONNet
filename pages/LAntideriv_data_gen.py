@@ -16,7 +16,15 @@ from scipy import spatial
 from scipy.interpolate import interp1d
 from scipy.integrate import odeint, solve_ivp
 
+def transform_to_array(result):
+    result_list = [x for x in result]
+    result_train = np.array(result_list)
+    return result_train
 
+def u_interpolation(X,U,y):
+        X = np.squeeze(X)
+        u = interp1d(X, U, kind='cubic')
+        return u(y)
 
 
 def linear_antiderivative_training_data_generator(st, **state):
@@ -484,25 +492,39 @@ u^{(i)}(y^{(i)}_P) \\
         try:
             st.session_state.training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
             #u_train, s_train, y_train, s_train, u_y_train = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
-            u_list = [x for x in u]
-            u_train = np.array(u_list)
-            s0_list = [x for x in initial_conditions]
-            s0_train = np.array(s0_list)
-            y_list = [x for x in positions]
-            y_train = np.array(y_list)
+            
+            u_train = transform_to_array(u)
+            s0_train = transform_to_array(initial_conditions)
+            y_train = transform_to_array(positions)
+            s_y_list = [solve_linear_ode(X,U,interval,s0,np.expand_dims(y_eval,0) ) for (U,s0,y_eval) in zip(u_train, s0_train,y_train)]
+            s_y_train = np.array(s_y_list)   
+            u_y_list = [u_interpolation(X,U,y_eval) for (U,y_eval) in zip(u_train, y_train)]  
+            u_y_train = np.array(u_y_list)
+        
 
             
+
             
         except:
              st.info("Need to generate the input functions")
 
-        st.write('Training data =',st.session_state.training_data)
+        #st.write('Training data =',st.session_state.training_data)
         st.write('u_train = ',u_train)
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.write('s0_train = ',s0_train)
         with col2:
             st.write('y_train = ',y_train)
+        with col3:
+            st.write('s_y_train = ',s_y_train)
+        with col4:
+            st.write('u_y_train =',u_y_train)
+
+        full_data = [u_train,s0_train,y_train,s_y_train,u_y_train]
+
+        st.write(full_data)
+    
+
 
 
         st.session_state.counter += 1
@@ -521,6 +543,7 @@ u^{(i)}(y^{(i)}_P) \\
             with col2:
                 st.write('y_train = ',y_train)
 
+            
         except:
             st.info("Need to generate arrays of training data")
 
@@ -539,8 +562,8 @@ u^{(i)}(y^{(i)}_P) \\
     
 
 
-    class DataGenerator(data.Dataset):
-        def __init__(self, u, s_0, y, s, #u_y, 
+    class DataGenerator():
+        def __init__(self, u, s_0, y, s, u_y, 
                  batch_size=64, rng_key=1234):
     #             'Initialization'
                  self.u = u # input sample
@@ -580,6 +603,8 @@ u^{(i)}(y^{(i)}_P) \\
      
     st.write("#################################################")
 
+    
+    
 
     #def interpolation(U,X,y):
     #    u = interp1d(X, U, kind='cubic')
@@ -587,27 +612,10 @@ u^{(i)}(y^{(i)}_P) \\
         
 
 
-    #u_train = [x for x in u]
-    #s0_train = [x for x in initial_conditions]
-    #y_train = [x for x in positions]
     #s_train = [data_training_array_gen(x,u_train,interval,s0_train,np.expand_dims(y_train,0) ) for (u_train,s0_train,y_train) in zip(u_train,s0_train,y_train)]
     #u_y_train= [ interpolation(u_train,x,y_train) for (u_train,y_train) in zip(u_train,y_train)]
 
-    #st.write('u_train type =', type(u_train))
-    #st.write('u_train lenght =', len(u_train))
-
-    #st.write('s0_train type =', type(s0_train))
-    #st.write('s0_train lenght =', len(s0_train))
-
-    #st.write('y type =', type(y_train))
-    #st.write('y lenght =', len(y_train))
-
-    #st.write('s_train type =', type(s_train))
-    #st.write('s_train lenght =', len(s_train))
-
-    #st.write('u_y_train type =', type(u_y_train))
-    #st.write('u_y_train lenght =', len(u_y_train))
-
+    
 
     #dataset = DataGenerator(u_train, s_train, y_train, s_train,  batch_size)
     #st.write('dataset =',dataset)

@@ -409,15 +409,83 @@ y $x_b$. La función de covarianza tiene que ser una función positivamente defi
 
     st.subheader("Training Data Generation")
     with st.expander("View training data format"):
-        st.write("En construccion")
+        st.latex(r"""
+        \begin{bmatrix}
+        u, & s_0, & y, & G[u,y], & u(y)
+        \end{bmatrix}=
+        """  )
+        st.latex(r"""
+        = \begin{bmatrix}
+        \begin{pmatrix}
+ & \vdots & & \\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\
+ & \vdots & &\\
+u^{(i)}(x_1) & u^{(i)}(x_2) & \cdots & u^{(i)}(x_m)\\    
+ & \vdots & & 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+s_0.^{(i)}_1 \\
+s_0.^{(i)}_2 \\    
+\vdots \\
+s_0.^{(i)}_P \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+y^{(i)}_1 \\
+y^{(i)}_2 \\    
+\vdots \\
+y^{(i)}_P \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+G[u^{(i)},y^{(i)}_1] \\
+G[u^{(i)},y^{(i)}_2] \\    
+\vdots \\
+G[u^{(i)},y^{(i)}_P] \\
+\vdots                 
+\end{pmatrix}, & \begin{pmatrix}
+\vdots \\
+u^{(i)}(y^{(i)}_1)  \\
+u^{(i)}(y^{(i)}_2) \\    
+\vdots \\
+u^{(i)}(y^{(i)}_P) \\
+\vdots                 
+\end{pmatrix}
+        \end{bmatrix}
+        
+         """)
+
 
 
     if st.checkbox("Creating training data"):
         interval = [0,1]
         X_eval = np.linspace(0,1,100)
 
-        training_data = Data_gen(nb_of_samples, X_min,X_max,sigma, media,interval,s0,X_eval)
-        st.write([training_data.all_gp_params[1].pts_to_eval,training_data.all_gp_params[1].s])
+        st.write("Gaussian Process")
+        st.write(GP_gen.all_gp_params[0].gp)
+        # self.X_min = X_min
+        # self.X_max = X_max
+
+        # # Parametros del proceso gaussiano
+        # self.sigma = sigma #Parámetro de escala
+        # self.media = media 
+        # self.nb_of_samples = nb_of_samples # Número de puntos donde se va a evaluar
+        #                                    # el proceso estocástico
+        
+        # # Creacion de parametros intermedios
+        # self.X, self.mean = self.gp_params_processor()
+        # self.COV = self.exponentiated_quadratic()
+        
+        # Generacion del proceso gaussiano
+        #self.gp = np.random.multivariate_normal(self.mean,cov=self.COV,size=1)
+        # self.gp = self.gp_generator()
+        
+        #Guardar todos los  
+        # self.all_gp_params.append(self)
+
+        #training_data = Data_gen(nb_of_samples, X_min,X_max,sigma, media,interval,s0,X_eval)
+        #st.write([training_data.all_gp_params[1].pts_to_eval,training_data.all_gp_params[1].s])
         
          
         
