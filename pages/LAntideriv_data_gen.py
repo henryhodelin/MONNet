@@ -16,6 +16,8 @@ from scipy import spatial
 from scipy.interpolate import interp1d
 from scipy.integrate import odeint, solve_ivp
 
+from dataclasses import dataclass, field
+
 def transform_to_array(result):
     result_list = [x for x in result]
     result_train = np.array(result_list)
@@ -25,6 +27,51 @@ def u_interpolation(X,U,y):
         X = np.squeeze(X)
         u = interp1d(X, U, kind='cubic')
         return u(y)
+
+def get_len(a):
+    return len(a)
+
+
+
+
+
+class Batch_Gen():
+    def __init__(self, full_data,batch_size):
+        self.u = full_data[0]
+        self.s0 = full_data[1]
+        self.y = full_data[2]
+        self.s_y = full_data[3]
+        self.u_y = full_data[4]
+        self.batch_size = batch_size
+
+    def __getitem__(self, index):
+        batch = self.__get_batches()
+        return batch
+
+    # def get_batches(self):
+    #     idexes = random.sample(range(0, len(self.s_y)), self.batch_size)
+    #     u_batch = self.u[idexes,:]
+    #     s0_batch = self.s0[idexes]
+    #     y_batch = self.y[idexes]
+    #     s_y_batch = self.s_y[idexes,:]
+    #     u_y_batch = self.u_y[idexes]
+    #     return [u_batch,s0_batch,y_batch,s_y_batch,u_y_batch]
+
+    def __get_batches(self):
+        idexes = random.sample(range(0, len(self.s_y)), self.batch_size)
+        u_batch = self.u[idexes,:]
+        s0_batch = self.s0[idexes]
+        y_batch = self.y[idexes]
+        s_y_batch = self.s_y[idexes,:]
+        u_y_batch = self.u_y[idexes]
+        return [u_batch,s0_batch,y_batch,s_y_batch,u_y_batch]
+
+        
+
+
+        
+
+    
 
 
 def linear_antiderivative_training_data_generator(st, **state):
@@ -484,6 +531,8 @@ u^{(i)}(y^{(i)}_P) \\
     with col3:
         view_data = st.button(label="VIEW DATA")
     
+    if "full_data" not in st.session_state:
+        st.session_state["full_data"] = []
         
     if st.session_state.G_data:
         #positions = [random.random() for j in range(number_of_functions)]
@@ -520,9 +569,11 @@ u^{(i)}(y^{(i)}_P) \\
         with col4:
             st.write('u_y_train =',u_y_train)
 
-        full_data = [u_train,s0_train,y_train,s_y_train,u_y_train]
+        
+        st.session_state["full_data"] = [u_train,s0_train,y_train,s_y_train,u_y_train] 
+        #full_data = [u_train,s0_train,y_train,s_y_train,u_y_train]
 
-        st.write(full_data)
+        #st.write(full_data)
     
 
 
@@ -559,86 +610,20 @@ u^{(i)}(y^{(i)}_P) \\
 
     st.subheader("Generating batches of training data")
     
-    
-
-
-    class DataGenerator():
-        def __init__(self, u, s_0, y, s, u_y, 
-                 batch_size=64, rng_key=1234):
-    #             'Initialization'
-                 self.u = u # input sample
-                 self.s_0 = s_0 # initial condition
-                 self.y = y # location
-                 self.s = s # labeled data evulated at y (solution measurements, BC/IC conditions, etc.)
-    #             self.u_y = u_y # input sample at the location y 
-                 
-                 #self.N = u.shape[0]
-                 self.N = len(u)
-                 self.batch_size = batch_size
-                 self.key = rng_key
-    #             
-        def __getitem__(self, index):
-    #        'Generate one batch of data'
-            inputs, outputs = self.__data_generation(self.key)
-            return inputs, outputs
-    #        
-        def __data_generation(self, key):
-    #        'Generates data containing batch_size samples'
-            idx = random.sample(range(0, self.N), self.batch_size)
-            s = self.s[idx,:]
-            y = self.y[idx,:]
-            u = self.u[idx,:]
-            s_0 = self.s_0[idx,:] 
-    #        # Construct batch
-            inputs = (u, y)
-            outputs = (s, s_0)
-            return inputs, outputs
-
-    
 
 
     batch_size = st.slider('BATCH SIZE', 1, 10, 2)
     
 
-     
-    st.write("#################################################")
-
+    data = Batch_Gen(st.session_state.full_data,batch_size)
     
     
 
-    #def interpolation(U,X,y):
-    #    u = interp1d(X, U, kind='cubic')
-    #    return u(y)
-        
+    if st.checkbox("Get batch"):
+        myit = iter(data)
 
+        batch_button = st.button("Next batch") 
+        if batch_button:
+            st.write(next(myit)) 
+            batch_button = False
 
-    #s_train = [data_training_array_gen(x,u_train,interval,s0_train,np.expand_dims(y_train,0) ) for (u_train,s0_train,y_train) in zip(u_train,s0_train,y_train)]
-    #u_y_train= [ interpolation(u_train,x,y_train) for (u_train,y_train) in zip(u_train,y_train)]
-
-    
-
-    #dataset = DataGenerator(u_train, s_train, y_train, s_train,  batch_size)
-    #st.write('dataset =',dataset)
-
-    #datos = iter(dataset)
-    
-
-    #if st.button('Verificar Iteracion'):
-    #    batch = next(datos)
-    #    st.write(batch)
-
-
-
-    #training_data = [data_training_array_gen(x,u,interval,initial_conditions,np.expand_dims(positions,0) ) for  (u,initial_conditions,positions) in zip(u,initial_conditions,positions)]
-
-    #st.write(training_data)
-
-
-
-    
-
-
-
-
-
-    
